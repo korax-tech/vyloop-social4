@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VYLOOP SOCIAL · Founder Account Setup</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#080511;color:#f8f5ff}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#35106a 0,transparent 55%),#080511}.panel{width:min(100%,460px);padding:30px;border:1px solid #5721a0;border-radius:24px;background:#100a1dcc;box-shadow:0 20px 80px #0009}.brand{color:#c084fc;font-weight:900;letter-spacing:.08em}.mark{font-size:34px;margin-bottom:8px}h1{font-size:25px;margin:12px 0 8px}p{color:#b9adc9;line-height:1.5}.notice{padding:12px;border-radius:12px;background:#211238;color:#e9d5ff;font-size:13px;margin:18px 0}label{display:block;font-size:13px;color:#d8cce7;margin:15px 0 7px}input{width:100%;padding:14px;border-radius:11px;border:1px solid #48345e;background:#0c0813;color:white;font-size:15px}button{width:100%;border:0;border-radius:12px;padding:15px;margin-top:20px;background:linear-gradient(90deg,#7615e9,#c026d3);color:white;font-weight:800;font-size:15px}button:disabled{opacity:.55}#status{min-height:24px;font-size:14px;margin-top:15px;color:#d8b4fe}.fine{font-size:12px;color:#8f829f;margin-top:18px}
+</style>
+</head>
+<body><main class="panel">
+<div class="mark">◢</div><div class="brand">VYLOOP SOCIAL</div>
+<h1>Founder account setup</h1>
+<p>Create the first owner account for the platform. This setup page only accepts the designated founder email.</p>
+<div class="notice">🔒 Restricted setup · Date of birth is stored privately and must confirm you are at least 18.</div>
+<form id="signup">
+<label for="name">Full name</label><input id="name" autocomplete="name" required maxlength="80">
+<label for="email">Founder email</label><input id="email" type="email" value="riccooghenerunor@gmail.com" readonly>
+<label for="dob">Date of birth</label><input id="dob" type="date" required>
+<label for="password">Create a new password</label><input id="password" type="password" autocomplete="new-password" minlength="12" required>
+<label for="confirm">Confirm password</label><input id="confirm" type="password" autocomplete="new-password" minlength="12" required>
+<button id="submit" type="submit">Create founder account</button>
+<div id="status" role="status" aria-live="polite"></div>
+</form>
+<div class="fine">Use a unique password you have never shared in chat. This page does not grant admin privileges; the Super Admin role is assigned separately after the account is verified.</div>
+</main>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+const supabase = createClient('https://nsuacflxwjwdrpmmdsbd.supabase.co','sb_publishable_K1oYaIddM8_KnI4umSL3hw_BXmfQ-Fd');
+const form=document.querySelector('#signup'), status=document.querySelector('#status'), button=document.querySelector('#submit');
+const founderEmail='riccooghenerunor@gmail.com';
+form.addEventListener('submit',async e=>{
+ e.preventDefault(); status.textContent=''; button.disabled=true;
+ const fullName=document.querySelector('#name').value.trim();
+ const dob=document.querySelector('#dob').value;
+ const password=document.querySelector('#password').value;
+ const confirm=document.querySelector('#confirm').value;
+ const birth=new Date(dob+'T00:00:00');
+ const today=new Date(); const cutoff=new Date(today.getFullYear()-18,today.getMonth(),today.getDate());
+ if(!dob || Number.isNaN(birth.getTime()) || birth>cutoff){status.textContent='You must be at least 18 years old to register.';button.disabled=false;return;}
+ if(password!==confirm){status.textContent='Passwords do not match.';button.disabled=false;return;}
+ if(password.length<12){status.textContent='Use at least 12 characters for your password.';button.disabled=false;return;}
+ try{
+  const {data,error}=await supabase.auth.signUp({email:founderEmail,password,options:{data:{full_name:fullName,display_name:fullName,date_of_birth:dob}}});
+  if(error) throw error;
+  status.textContent=data.session?'Account created. You can now sign in.':'Signup submitted. Check your email for a confirmation link before signing in.';
+  form.reset();document.querySelector('#email').value=founderEmail;
+ }catch(err){status.textContent=err.message||'Signup failed. Please try again.';}
+ finally{button.disabled=false;}
+});
+</script>
+</body></html>
